@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课件制作工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group textarea {
+            min-height: 300px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            line-height: 1.6;
+            resize: vertical;
+        }
+        
+        .help-text {
+            font-size: 14px;
+            color: #666;
+            margin-top: 6px;
+        }
+        
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .preview {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .preview h3 {
+            margin-bottom: 12px;
+            color: #333;
+        }
+        
+        .preview ul {
+            list-style: none;
+        }
+        
+        .preview li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .preview li::before {
+            content: "📄";
+            margin-right: 10px;
+        }
+        
+        .status {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        
+        .status.loading {
+            background: #cce5ff;
+            color: #004085;
+            display: block;
+        }
+        
+        .download-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+        
+        .download-link:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 课件制作工具</h1>
+            <p>输入标题和大纲，一键生成 PPT 课件</p>
+        </div>
+        
+        <div class="card">
+            <div class="form-group">
+                <label>课件标题</label>
+                <input type="text" id="title" placeholder="例如：Python 入门教程" value="">
+            </div>
+            
+            <div class="form-group">
+                <label>课件大纲</label>
+                <textarea id="outline" placeholder="## 第一章 基础语法
+### 变量定义
+Python是动态类型语言
+### 数据类型
+整数、字符串、列表
+
+## 第二章 控制结构
+### 条件语句
+if 语句的使用
+### 循环语句
+for 和 while 循环"></textarea>
+                <p class="help-text">使用 ## 标记章节，### 标记小节，普通文字自动作为内容</p>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="generatePPT()">生成课件</button>
+                <button class="btn" style="background: #6c757d; color: white;" onclick="preview()">预览结构</button>
+                <button class="btn" style="background: #17a2b8; color: white;" onclick="clearForm()">清空</button>
+            </div>
+            
+            <div class="status" id="status"></div>
+            
+            <div class="preview" id="preview" style="display: none;">
+                <h3>📋 课件结构预览</h3>
+                <ul id="previewList"></ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function parseOutline(title, outline) {
+            const slides = [];
+            slides.push({ type: 'cover', title: title });
+            
+            let currentSection = null;
+            let currentSubsection = null;
+            
+            const lines = outline.trim().split('\n');
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+                
+                if (trimmed.startsWith('## ')) {
+                    currentSection = trimmed.substring(3);
+                    currentSubsection = null;
+                    slides.push({ type: 'section', title: currentSection });
+                } else if (trimmed.startsWith('### ')) {
+                    currentSubsection = trimmed.substring(3);
+                    slides.push({ type: 'subsection', title: currentSubsection, content: '' });
+                } else if (trimmed.startsWith('# ')) {
+                    currentSection = trimmed.substring(2);
+                    slides.push({ type: 'section', title: currentSection });
+                } else if (currentSection || currentSubsection) {
+                    slides.push({ type: 'content', title: currentSubsection || currentSection, content: trimmed });
+                } else {
+                    slides.push({ type: 'content', title: title, content: trimmed });
+                }
+            }
+            
+            return slides;
+        }
+        
+        function preview() {
+            const title = document.getElementById('title').value || '未命名课件';
+            const outline = document.getElementById('outline').value;
+            
+            if (!outline.trim()) {
+                showStatus('请输入课件大纲', 'error');
+                return;
+            }
+            
+            const slides = parseOutline(title, outline);
+            
+            const listEl = document.getElementById('previewList');
+            listEl.innerHTML = '';
+            
+            slides.forEach((slide, index) => {
+                const li = document.createElement('li');
+                let icon = '📝';
+                if (slide.type === 'cover') icon = '🎬';
+                else if (slide.type === 'section') icon = '📚';
+                else if (slide.type === 'subsection') icon = '📖';
+                else if (slide.type === 'content') icon = '📄';
+                
+                li.innerHTML = `${icon} <strong>${slide.title}</strong>` + (slide.content ? `: ${slide.content.substring(0, 30)}${slide.content.length > 30 ? '...' : ''}` : '');
+                listEl.appendChild(li);
+            });
+            
+            document.getElementById('preview').style.display = 'block';
+            showStatus(`共 ${slides.length} 页`, 'success');
+        }
+        
+        async function generatePPT() {
+            const title = document.getElementById('title').value;
+            const outline = document.getElementById('outline').value;
+            
+            if (!title.trim()) {
+                showStatus('请输入课件标题', 'error');
+                return;
+            }
+            
+            if (!outline.trim()) {
+                showStatus('请输入课件大纲', 'error');
+                return;
+            }
+            
+            showStatus('正在生成课件...', 'loading');
+            
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, outline })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus(`✅ 课件生成成功！共 ${result.slides} 页`, 'success');
+                    
+                    const statusEl = document.getElementById('status');
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = result.download_url;
+                    downloadLink.className = 'download-link';
+                    downloadLink.textContent = '📥 下载 PPT';
+                    downloadLink.download = title + '.pptx';
+                    statusEl.appendChild(downloadLink);
+                } else {
+                    showStatus('❌ ' + result.message, 'error');
+                }
+            } catch (error) {
+                showStatus('❌ 生成失败: ' + error.message, 'error');
+            }
+        }
+        
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.className = 'status ' + type;
+            statusEl.textContent = message;
+            
+            // 保留下载链接
+            const existingLink = statusEl.querySelector('.download-link');
+            if (existingLink && type === 'success') {
+                const link = existingLink.cloneNode(true);
+                statusEl.appendChild(link);
+            }
+        }
+        
+        function clearForm() {
+            document.getElementById('title').value = '';
+            document.getElementById('outline').value = '';
+            document.getElementById('preview').style.display = 'none';
+            document.getElementById('status').className = 'status';
+            document.getElementById('status').textContent = '';
+        }
+    </script>
+</body>
+</html>
